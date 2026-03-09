@@ -1,0 +1,66 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function isValidSnapshot(snapshot) {
+      return snapshot is map
+        && snapshot.keys().hasOnly(['key', 'score', 'maxTile', 'updatedAt'])
+        && snapshot.key is string
+        && snapshot.score is int
+        && snapshot.score >= 0
+        && snapshot.maxTile is int
+        && snapshot.maxTile >= 0;
+    }
+
+    function isValidLeaderboardDoc(data, uid) {
+      return data is map
+        && data.keys().hasOnly(['uid', 'all', 'daily', 'weekly', 'monthly'])
+        && data.uid == uid
+        && isValidSnapshot(data.all)
+        && isValidSnapshot(data.daily)
+        && isValidSnapshot(data.weekly)
+        && isValidSnapshot(data.monthly)
+        && data.all.key == 'all'
+        && data.daily.key.matches('^\\d{4}-\\d{2}-\\d{2}$')
+        && data.weekly.key.matches('^week-\\d{4}-\\d{2}-\\d{2}$')
+        && data.monthly.key.matches('^\\d{4}-\\d{2}$');
+    }
+
+    function scoreNotLower(next, prev) {
+      return next.score > prev.score
+        || (next.score == prev.score && next.maxTile >= prev.maxTile);
+    }
+
+    function bucketProgress(next, prev) {
+      return next.key != prev.key || scoreNotLower(next, prev);
+    }
+
+    function isProgressiveUpdate(next, prev) {
+      return scoreNotLower(next.all, prev.all)
+        && bucketProgress(next.daily, prev.daily)
+        && bucketProgress(next.weekly, prev.weekly)
+        && bucketProgress(next.monthly, prev.monthly);
+    }
+
+    match /leaderboard/{uid} {
+      allow read: if true;
+      allow create: if isOwner(uid) && isValidLeaderboardDoc(request.resource.data, uid);
+      allow update: if isOwner(uid)
+        && isValidLeaderboardDoc(request.resource.data, uid)
+        && isProgressiveUpdate(request.resource.data, resource.data);
+      allow delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

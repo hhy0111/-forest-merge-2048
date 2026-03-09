@@ -1,0 +1,138 @@
+{
+  "version": 1,
+  "cell_px": [
+    256,
+    256
+  ],
+  "default_fps": 20,
+  "sheets": [
+    {
+      "file": "fx_merge_burst_sheet.png",
+      "size_px": [
+        1024,
+        1024
+      ],
+      "cell_px": [
+        256,
+        256
+      ],
+      "cols": 4,
+      "rows": 4,
+      "frame_count": 16,
+      "fps": 20,
+      "loop": false
+    },
+    {
+      "file": "fx_merge_glow_ring_sheet.png",
+      "size_px": [
+        1024,
+        512
+      ],
+      "cell_px": [
+        256,
+        256
+      ],
+      "cols": 4,
+      "rows": 2,
+      "frame_count": 8,
+      "fps": 20,
+      "loop": false
+    },
+    {
+      "file": "fx_combo_burst_sheet.png",
+      "size_px": [
+        1024,
+        512
+      ],
+      "cell_px": [
+        256,
+        256
+      ],
+      "cols": 4,
+      "rows": 2,
+      "frame_count": 8,
+      "fps": 20,
+      "loop": false
+    },
+    {
+      "file": "fx_pre_goal_warning_sheet.png",
+      "size_px": [
+        1024,
+        512
+      ],
+      "cell_px": [
+        256,
+        256
+      ],
+      "cols": 4,
+      "rows": 2,
+      "frame_count": 8,
+      "fps": 20,
+      "loop": true
+    },
+    {
+      "file": "fx_game_clear_flash_sheet.png",
+      "size_px": [
+        1024,
+        1024
+      ],
+      "cell_px": [
+        256,
+        256
+      ],
+      "cols": 4,
+      "rows": 4,
+      "frame_count": 16,
+      "fps": 16,
+      "loop": false
+    },
+    {
+      "file": "fx_tile_spawn_sheet.png",
+      "size_px": [
+        1024,
+        1024
+      ],
+      "cell_px": [
+        256,
+        256
+      ],
+      "cols": 4,
+      "rows": 4,
+      "frame_count": 16,
+      "fps": 20,
+      "loop": false
+    },
+    {
+      "file": "fx_coin_pop_sheet.png",
+      "size_px": [
+        1024,
+        1024
+      ],
+      "cell_px": [
+        256,
+        256
+      ],
+      "cols": 4,
+      "rows": 4,
+      "frame_count": 16,
+      "fps": 20,
+      "loop": false
+    },
+    {
+      "file": "fx_button_tap_spark_sheet.png",
+      "size_px": [
+        1024,
+        1024
+      ],
+      "cell_px": [
+        256,
+        256
+      ],
+      "cols": 4,
+      "rows": 4,
+      "frame_count": 16,
+      "fps": 12,
+      "loop": false
+    }
+  ]
+}
