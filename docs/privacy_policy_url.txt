@@ -1,5 +1,4 @@
-Privacy Policy URL template
-- https://<github-username>.github.io/<repo-name>/privacy-policy.html
+Privacy Policy URL
+- https://hhy0111.github.io/-forest-merge-2048/privacy-policy.html
 
-Replace placeholders after GitHub Pages is enabled.
-Current status: pending GitHub publish (account/repo access required).
+Status: published (HTTP 200 verified on 2026-03-09).
