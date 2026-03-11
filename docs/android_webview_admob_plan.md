@@ -16,6 +16,7 @@
 - `banner_lobby`: Lobby screen only
 - `banner_result`: Result/Shop screen only
 - `reward_result`: Result screen reward button click
+- `reward_lobby`: Lobby screen reward button click
 - No banner in Game / Bonus Mode / Splash / Ranking to avoid input disruption
 
 ## 4) AdMob IDs applied
@@ -23,6 +24,7 @@
 - Banner (Lobby): `ca-app-pub-4402708884038037/8512575792`
 - Banner (Result): `ca-app-pub-4402708884038037/9098423799`
 - Rewarded (Result): `ca-app-pub-4402708884038037/9697664956`
+- Rewarded (Lobby): `ca-app-pub-4402708884038037/6973468693` 
 
 ## 5) Build & run order
 1. Run `./scripts_sync_web_to_android.ps1` at repository root.

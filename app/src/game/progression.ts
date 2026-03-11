@@ -1,4 +1,4 @@
-export type UpgradeKey = 'score' | 'combo' | 'endBonus' | 'economy' | 'clear';
+export type UpgradeKey = 'score' | 'combo' | 'endBonus' | 'economy' | 'clear' | 'lobbyAd';
 
 export type UpgradeDef = {
   label: string;
@@ -38,6 +38,12 @@ export const UPGRADE_DEFS: Record<UpgradeKey, UpgradeDef> = {
     maxLevel: 100,
     baseCost: 130,
   },
+  lobbyAd: {
+    label: 'Lobby Ad Boost',
+    desc: 'Increases lobby rewarded-ad points.',
+    maxLevel: 100,
+    baseCost: 150,
+  },
 };
 
 export const UPGRADE_COST_MULTIPLIER = 1.5;
@@ -46,6 +52,7 @@ export const UPGRADE_COMBO_RATE_STEP = 0.0008;
 export const UPGRADE_END_BONUS_RATE_STEP = 0.002;
 export const UPGRADE_ECONOMY_RATE_STEP = 0.0025;
 export const UPGRADE_CLEAR_BONUS_STEP = 1;
+export const UPGRADE_LOBBY_AD_RATE_STEP = 0.002;
 
 export function calcUpgradeCost(baseCost: number, level: number) {
   const safeLevel = Math.max(0, Math.floor(level));
@@ -85,6 +92,33 @@ export function calcClearBonusFlat(level: number) {
 export function calcAdRewardPoints(baseAdPoints: number, economyLevel: number) {
   const economyBonus = Math.floor(baseAdPoints * calcEconomyRate(economyLevel));
   return baseAdPoints + economyBonus;
+}
+
+export function calcLobbyAdRate(level: number) {
+  return Math.max(0, Math.floor(level)) * UPGRADE_LOBBY_AD_RATE_STEP;
+}
+
+export type LobbyAdRewardOutput = {
+  basePoints: number;
+  economyBonus: number;
+  lobbyAdBonus: number;
+  totalPoints: number;
+};
+
+export function calcLobbyAdReward(
+  baseAdPoints: number,
+  economyLevel: number,
+  lobbyAdLevel: number
+): LobbyAdRewardOutput {
+  const safeBase = Math.max(0, Math.floor(baseAdPoints));
+  const economyBonus = Math.floor(safeBase * calcEconomyRate(economyLevel));
+  const lobbyAdBonus = Math.floor(safeBase * calcLobbyAdRate(lobbyAdLevel));
+  return {
+    basePoints: safeBase,
+    economyBonus,
+    lobbyAdBonus,
+    totalPoints: safeBase + economyBonus + lobbyAdBonus,
+  };
 }
 
 export type EndRewardInput = {

@@ -1,4 +1,4 @@
-export type AdPlacement = 'banner_lobby' | 'banner_result' | 'reward_result';
+export type AdPlacement = 'banner_lobby' | 'banner_result' | 'reward_result' | 'reward_lobby';
 
 export type RewardResult = {
   rewarded: boolean;

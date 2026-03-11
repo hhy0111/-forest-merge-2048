@@ -25,6 +25,8 @@
 - UPGRADE_END_BONUS_RATE_STEP = 0.002
 - UPGRADE_ECONOMY_RATE_STEP = 0.0025
 - UPGRADE_CLEAR_BONUS_STEP = 1
+- UPGRADE_LOBBY_AD_RATE_STEP = 0.002
+- LOBBY_AD_BONUS_POINTS = 30
 
 ## Mini-game Reward
 - Duration: 30 seconds
@@ -53,12 +55,15 @@
 | End Bonus | +0.2% post-game point bonus | 100 | 180 |
 | Economy Boost | +0.25% all point rewards | 100 | 200 |
 | Clear Bonus+ | +1 clear bonus point | 100 | 130 |
+| Lobby Ad Boost | +0.2% lobby ad reward | 100 | 150 |
 
 Cost formula:
 - next cost = floor(baseCost * 1.5^currentLevel)
 
 Notes:
 - Economy Boost applies to game-end reward, mini-game reward, and rewarded-ad points.
+- Lobby Ad Boost applies only to lobby rewarded-ad points.
+- Result rewarded-ad keeps base reward and Economy Boost only.
 - Level means current level before purchase in the cost formula.
 
 ## Fine-tuned Progression Checkpoints

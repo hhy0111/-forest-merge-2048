@@ -4,6 +4,7 @@ import {
   calcAdRewardPoints,
   calcComboBonus,
   calcEndReward,
+  calcLobbyAdReward,
   calcUpgradeCost,
 } from './progression';
 
@@ -56,5 +57,13 @@ describe('progression', () => {
     expect(calcAdRewardPoints(60, 0)).toBe(60);
     expect(calcAdRewardPoints(60, 10)).toBe(61); // floor(60*0.025)=1
     expect(calcAdRewardPoints(60, 40)).toBe(66); // floor(60*0.10)=6
+  });
+
+  it('calculates lobby ad reward with economy + lobby ad bonuses', () => {
+    const out = calcLobbyAdReward(30, 20, 30);
+    expect(out.basePoints).toBe(30);
+    expect(out.economyBonus).toBe(1); // floor(30 * 0.05)
+    expect(out.lobbyAdBonus).toBe(1); // floor(30 * 0.06)
+    expect(out.totalPoints).toBe(32);
   });
 });

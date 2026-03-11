@@ -26,8 +26,10 @@ import {
   UPGRADE_DEFS,
   UPGRADE_ECONOMY_RATE_STEP,
   UPGRADE_END_BONUS_RATE_STEP,
+  UPGRADE_LOBBY_AD_RATE_STEP,
   UPGRADE_SCORE_RATE_STEP,
   calcAdRewardPoints,
+  calcLobbyAdReward,
   calcComboBonus,
   calcEconomyRate,
   calcEndReward,
@@ -66,6 +68,7 @@ const ITEM_DEFS: Record<ItemKey, ItemDef> = {
 
 const STORAGE_KEY = 'fm_state_v1';
 const AD_BONUS_POINTS = 60;
+const LOBBY_AD_BONUS_POINTS = 30;
 const MINIGAME_SECONDS = 30;
 const MINIGAME_MIN_POINTS = 50;
 const MINIGAME_MAX_POINTS = 120;
@@ -116,6 +119,7 @@ const DEFAULT_STATE: PlayerState = {
     endBonus: 0,
     economy: 0,
     clear: 0,
+    lobbyAd: 0,
   },
   nextGameBoostSeconds: 0,
 };
@@ -171,8 +175,12 @@ function getEconomyRate() {
   return calcEconomyRate(getUpgradeLevel('economy'));
 }
 
-function getAdRewardPoints() {
+function getResultAdRewardPoints() {
   return calcAdRewardPoints(AD_BONUS_POINTS, getUpgradeLevel('economy'));
+}
+
+function getLobbyAdReward() {
+  return calcLobbyAdReward(LOBBY_AD_BONUS_POINTS, getUpgradeLevel('economy'), getUpgradeLevel('lobbyAd'));
 }
 
 function formatRate(value: number) {
@@ -216,6 +224,7 @@ app.innerHTML = `
         <div class="lobby-actions">
           <button class="button-primary" id="lobby-start">Start Game</button>
           <button class="button-secondary" id="lobby-mini">Bonus Mode</button>
+          <button class="button-secondary" id="lobby-watch-ad">Watch Ad +${LOBBY_AD_BONUS_POINTS}</button>
           <button class="button-ghost" id="lobby-shop">Shop / Rewards</button>
           <button class="button-ghost" id="lobby-upgrade">Upgrades</button>
           <button class="button-ghost" id="lobby-rank">Ranking</button>
@@ -262,10 +271,10 @@ app.innerHTML = `
       <div class="panel">
         <div class="panel-title">Top Players</div>
         <div class="ranking-filters" id="ranking-filters">
-          <button class="ranking-filter active" data-period="daily">Daily</button>
+          <button class="ranking-filter active" data-period="all">All-time</button>
+          <button class="ranking-filter" data-period="daily">Daily</button>
           <button class="ranking-filter" data-period="weekly">Weekly</button>
           <button class="ranking-filter" data-period="monthly">Monthly</button>
-          <button class="ranking-filter" data-period="all">All-time</button>
         </div>
         <div class="ranking-my-card" id="ranking-my-card"></div>
         <div class="ranking-list" id="ranking-list"></div>
@@ -457,7 +466,8 @@ function emitHaptic(pattern: number | number[]) {
 let state = loadState();
 let currentScreen: Screen = 'splash';
 let startUpgradeArmed = false;
-let activeRankingPeriod: RankingPeriod = 'daily';
+let activeRankingPeriod: RankingPeriod = 'all';
+let lobbyAdRequestPending = false;
 
 const lobbyPointsEl = document.querySelector<HTMLDivElement>('#lobby-points')!;
 const lobbyStreakEl = document.querySelector<HTMLDivElement>('#lobby-streak')!;
@@ -467,6 +477,7 @@ const startUpgradeToggle = document.querySelector<HTMLButtonElement>('#start-upg
 
 const lobbyStartBtn = document.querySelector<HTMLButtonElement>('#lobby-start')!;
 const lobbyMiniBtn = document.querySelector<HTMLButtonElement>('#lobby-mini')!;
+const lobbyWatchAdBtn = document.querySelector<HTMLButtonElement>('#lobby-watch-ad')!;
 const lobbyShopBtn = document.querySelector<HTMLButtonElement>('#lobby-shop')!;
 const lobbyUpgradeBtn = document.querySelector<HTMLButtonElement>('#lobby-upgrade')!;
 const lobbyRankBtn = document.querySelector<HTMLButtonElement>('#lobby-rank')!;
@@ -886,6 +897,10 @@ function renderLobby() {
   lobbyStartCountEl.textContent = formatNumber(state.inventory.start);
   startUpgradeToggle.dataset.active = String(startUpgradeArmed);
   startUpgradeToggle.textContent = startUpgradeArmed ? 'ON' : 'OFF';
+
+  const lobbyAdReward = getLobbyAdReward();
+  lobbyWatchAdBtn.textContent = `Watch Ad +${formatNumber(lobbyAdReward.totalPoints)}`;
+  lobbyWatchAdBtn.disabled = lobbyAdRequestPending;
 }
 
 function renderGame() {
@@ -1055,7 +1070,7 @@ function renderResult() {
   resultWatchBtn.disabled = lastResult.adClaimed;
   resultWatchBtn.textContent = lastResult.adClaimed
     ? 'Ad bonus claimed'
-    : `Watch Ad +${formatNumber(getAdRewardPoints())}`;
+    : `Watch Ad +${formatNumber(getResultAdRewardPoints())}`;
 }
 
 function setRankingPeriod(period: RankingPeriod) {
@@ -1173,7 +1188,10 @@ function getUpgradeEffectLabel(key: UpgradeKey, level: number) {
   if (key === 'economy') {
     return `All rewards +${formatRate(level * UPGRADE_ECONOMY_RATE_STEP)}`;
   }
-  return `Clear bonus +${formatNumber(level * UPGRADE_CLEAR_BONUS_STEP)}`;
+  if (key === 'clear') {
+    return `Clear bonus +${formatNumber(level * UPGRADE_CLEAR_BONUS_STEP)}`;
+  }
+  return `Lobby ad reward +${formatRate(level * UPGRADE_LOBBY_AD_RATE_STEP)}`;
 }
 
 function renderUpgrade() {
@@ -1334,6 +1352,7 @@ function startGame() {
     upgrade_end_bonus_level: getUpgradeLevel('endBonus'),
     upgrade_economy_level: getUpgradeLevel('economy'),
     upgrade_clear_level: getUpgradeLevel('clear'),
+    upgrade_lobby_ad_level: getUpgradeLevel('lobbyAd'),
   });
 
   if (state.nextGameBoostSeconds > 0) {
@@ -1541,7 +1560,7 @@ function finishGame(cleared: boolean) {
 function claimAdBonus() {
   if (!lastResult || lastResult.adClaimed) return;
   lastResult.adClaimed = true;
-  const rewardedPoints = getAdRewardPoints();
+  const rewardedPoints = getResultAdRewardPoints();
   state.points += rewardedPoints;
   saveState();
   trackEvent('ad_reward', {
@@ -1552,6 +1571,27 @@ function claimAdBonus() {
   renderResult();
   renderLobby();
   renderUpgrade();
+}
+
+function claimLobbyAdBonus() {
+  const reward = getLobbyAdReward();
+  state.points += reward.totalPoints;
+  saveState();
+
+  trackEvent('ad_reward', {
+    source: 'lobby',
+    points: reward.totalPoints,
+    points_base: reward.basePoints,
+    points_economy_bonus: reward.economyBonus,
+    points_lobby_ad_bonus: reward.lobbyAdBonus,
+  });
+
+  renderLobby();
+  renderUpgrade();
+  renderResult();
+  renderGame();
+
+  return reward.totalPoints;
 }
 
 function buyItem(key: ItemKey) {
@@ -1820,6 +1860,26 @@ lobbyStartBtn.addEventListener('click', startGame);
 lobbyMiniBtn.addEventListener('click', () => {
   showScreen('minigame');
   renderMini();
+});
+lobbyWatchAdBtn.addEventListener('click', async () => {
+  if (lobbyAdRequestPending) return;
+
+  lobbyAdRequestPending = true;
+  renderLobby();
+
+  try {
+    const result = await showRewardedAd('reward_lobby');
+    if (!result.rewarded) {
+      showToast('Ad skipped.');
+      return;
+    }
+
+    const rewardedPoints = claimLobbyAdBonus();
+    showToast(`Ad reward +${formatNumber(rewardedPoints)} points.`);
+  } finally {
+    lobbyAdRequestPending = false;
+    renderLobby();
+  }
 });
 lobbyShopBtn.addEventListener('click', () => {
   showScreen('result');

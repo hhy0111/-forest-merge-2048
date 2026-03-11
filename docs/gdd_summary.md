@@ -5,7 +5,7 @@
 - Support point economy, items, and banner ads for a service-ready MVP.
 
 ## Core Loop
-1. Lobby -> choose Start / Bonus / Upgrades
+1. Lobby -> choose Start / Bonus / Watch Ad / Upgrades
 2. Upgrade screen -> spend points for small permanent boosts
 3. Swipe to merge image blocks -> score and combos
 4. Clear or fail -> reward calculation -> result + shop
@@ -29,6 +29,7 @@
 - Clear streak bonus: +30% of (base+clear) per streak step, max 3 streaks
 - Upgrade bonuses are stackable and scale up to level 100 each
 - Bonus mini-game: 50~120 points, with optional temporary buff
+- Lobby rewarded ad: base 30 points (+Economy Boost + Lobby Ad Boost)
 
 ## Items
 - Undo: 120 pts, limit 3 per game
@@ -44,7 +45,7 @@
 
 ## Ads Policy
 - Banner only in Lobby (`banner_lobby`) and Result/Shop (`banner_result`)
-- Reward ad only from Result reward button (`reward_result`)
+- Reward ad from Lobby and Result reward buttons (both use `reward_result`)
 - No banner on Game/Bonus/Splash/Ranking to avoid input disruption
 
 ## Done Criteria
@@ -61,3 +62,4 @@
 - End Bonus: +0.2% post-game point bonus per level
 - Economy Boost: +0.25% to all point rewards per level (game end, mini-game, ad reward)
 - Clear Bonus+: +1 clear bonus point per level
+- Lobby Ad Boost: +0.2% lobby ad reward per level

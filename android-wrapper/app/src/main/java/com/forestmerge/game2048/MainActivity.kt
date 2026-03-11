@@ -4,15 +4,15 @@ import android.annotation.SuppressLint
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
-import android.webkit.JavascriptInterface
 import android.webkit.ConsoleMessage
+import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
-import android.webkit.WebSettings
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
+import android.webkit.WebSettings
 import android.webkit.WebView
-import android.util.Log
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.webkit.WebViewAssetLoader
@@ -35,7 +35,9 @@ class MainActivity : AppCompatActivity() {
 
   private var bannerAdView: AdView? = null
   private var currentBannerPlacement: String? = null
-  private var rewardedAd: RewardedAd? = null
+
+  private val rewardedAds = mutableMapOf<String, RewardedAd?>()
+  private val rewardedLoading = mutableSetOf<String>()
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -46,7 +48,8 @@ class MainActivity : AppCompatActivity() {
 
     MobileAds.initialize(this)
     setupWebView()
-    preloadRewardedAd()
+    preloadRewardedAd("reward_result")
+    preloadRewardedAd("reward_lobby")
   }
 
   @SuppressLint("SetJavaScriptEnabled")
@@ -111,6 +114,14 @@ class MainActivity : AppCompatActivity() {
     }
   }
 
+  private fun rewardedUnitIdForPlacement(placement: String): String? {
+    return when (placement) {
+      "reward_result" -> getString(R.string.ad_unit_reward_result)
+      "reward_lobby" -> getString(R.string.ad_unit_reward_lobby)
+      else -> null
+    }
+  }
+
   private fun showBannerInternal(placement: String) {
     val unitId = bannerUnitIdForPlacement(placement) ?: run {
       hideBannerInternal()
@@ -142,28 +153,40 @@ class MainActivity : AppCompatActivity() {
     bannerContainer.visibility = View.GONE
   }
 
-  private fun preloadRewardedAd() {
+  private fun preloadRewardedAd(placement: String) {
+    val unitId = rewardedUnitIdForPlacement(placement) ?: return
+    if (rewardedAds[placement] != null) return
+    if (rewardedLoading.contains(placement)) return
+
+    rewardedLoading.add(placement)
     RewardedAd.load(
       this,
-      getString(R.string.ad_unit_reward_result),
+      unitId,
       AdRequest.Builder().build(),
       object : RewardedAdLoadCallback() {
         override fun onAdLoaded(ad: RewardedAd) {
-          rewardedAd = ad
+          rewardedAds[placement] = ad
+          rewardedLoading.remove(placement)
         }
 
         override fun onAdFailedToLoad(error: LoadAdError) {
-          rewardedAd = null
+          rewardedAds.remove(placement)
+          rewardedLoading.remove(placement)
         }
       }
     )
   }
 
-  private fun showRewardedAdInternal(requestId: String) {
-    val ad = rewardedAd
+  private fun showRewardedAdInternal(placement: String, requestId: String) {
+    if (rewardedUnitIdForPlacement(placement) == null) {
+      sendRewardResult(requestId, rewarded = false)
+      return
+    }
+
+    val ad = rewardedAds[placement]
     if (ad == null) {
       sendRewardResult(requestId, rewarded = false)
-      preloadRewardedAd()
+      preloadRewardedAd(placement)
       return
     }
 
@@ -171,19 +194,19 @@ class MainActivity : AppCompatActivity() {
 
     ad.fullScreenContentCallback = object : FullScreenContentCallback() {
       override fun onAdDismissedFullScreenContent() {
-        rewardedAd = null
+        rewardedAds.remove(placement)
         sendRewardResult(requestId, rewarded)
-        preloadRewardedAd()
+        preloadRewardedAd(placement)
       }
 
       override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-        rewardedAd = null
+        rewardedAds.remove(placement)
         sendRewardResult(requestId, rewarded = false)
-        preloadRewardedAd()
+        preloadRewardedAd(placement)
       }
 
       override fun onAdShowedFullScreenContent() {
-        rewardedAd = null
+        rewardedAds.remove(placement)
       }
     }
 
@@ -205,6 +228,8 @@ class MainActivity : AppCompatActivity() {
     bannerAdView?.destroy()
     webView.removeJavascriptInterface("AndroidAds")
     webView.destroy()
+    rewardedAds.clear()
+    rewardedLoading.clear()
     super.onDestroy()
   }
 
@@ -233,9 +258,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     @JavascriptInterface
-    fun showRewardedAd(_placement: String, requestId: String) {
+    fun showRewardedAd(placement: String, requestId: String) {
       runOnUiThread {
-        showRewardedAdInternal(requestId)
+        showRewardedAdInternal(placement, requestId)
       }
     }
   }

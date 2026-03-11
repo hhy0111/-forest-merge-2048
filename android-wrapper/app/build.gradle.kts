@@ -1,6 +1,43 @@
+import java.util.Properties
+
 plugins {
   id("com.android.application")
   id("org.jetbrains.kotlin.android")
+}
+
+val keystoreProperties = Properties().apply {
+  val propsFile = rootProject.file("keystore.properties")
+  if (propsFile.exists()) {
+    propsFile.inputStream().use { load(it) }
+  }
+}
+
+fun signingProp(name: String): String? {
+  val fromFile = keystoreProperties.getProperty(name)
+  if (!fromFile.isNullOrBlank()) return fromFile
+  val fromEnv = System.getenv(name)
+  if (!fromEnv.isNullOrBlank()) return fromEnv
+  return null
+}
+
+val releaseStoreFile = signingProp("RELEASE_STORE_FILE")
+val releaseStorePassword = signingProp("RELEASE_STORE_PASSWORD")
+val releaseKeyAlias = signingProp("RELEASE_KEY_ALIAS")
+val releaseKeyPassword = signingProp("RELEASE_KEY_PASSWORD")
+
+val hasReleaseSigning = !releaseStoreFile.isNullOrBlank()
+  && !releaseStorePassword.isNullOrBlank()
+  && !releaseKeyAlias.isNullOrBlank()
+  && !releaseKeyPassword.isNullOrBlank()
+
+val wantsReleaseBuild = gradle.startParameter.taskNames.any {
+  it.contains("Release", ignoreCase = true)
+}
+
+if (wantsReleaseBuild && !hasReleaseSigning) {
+  throw GradleException(
+    "Missing release signing config. Set RELEASE_STORE_FILE, RELEASE_STORE_PASSWORD, RELEASE_KEY_ALIAS, RELEASE_KEY_PASSWORD in android-wrapper/keystore.properties or environment variables."
+  )
 }
 
 android {
@@ -16,9 +53,25 @@ android {
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
+  signingConfigs {
+    create("release") {
+      if (hasReleaseSigning) {
+        storeFile = file(releaseStoreFile!!)
+        storePassword = releaseStorePassword
+        keyAlias = releaseKeyAlias
+        keyPassword = releaseKeyPassword
+      }
+    }
+  }
+
   buildTypes {
     release {
       isMinifyEnabled = false
+      signingConfig = if (hasReleaseSigning) {
+        signingConfigs.getByName("release")
+      } else {
+        signingConfigs.getByName("debug")
+      }
       proguardFiles(
         getDefaultProguardFile("proguard-android-optimize.txt"),
         "proguard-rules.pro"
