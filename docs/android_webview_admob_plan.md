@@ -3,14 +3,14 @@
 ## 1) Android wrapper project (prepared)
 - Path: `android-wrapper`
 - Type: native Android WebView wrapper (Kotlin)
-- Main entry: `android-wrapper/app/src/main/java/com/forestmerge/game2048/MainActivity.kt`
+- Main entry: `android-wrapper/app/src/main/java/com/appstudioon/forestmerge2048/MainActivity.kt`
 - Gradle wrapper: `android-wrapper/gradlew.bat`
 - Web asset sync script: `scripts_sync_web_to_android.ps1`
 - SDK config script: `scripts_configure_android_sdk.ps1`
 
 ## 2) Package name (fixed)
-- `applicationId`: `com.forestmerge.game2048`
-- `namespace`: `com.forestmerge.game2048`
+- `applicationId`: `com.appstudioon.forestmerge2048`
+- `namespace`: `com.appstudioon.forestmerge2048`
 
 ## 3) Ad placement policy (current game flow)
 - `banner_lobby`: Lobby screen only
@@ -45,3 +45,4 @@
 - `app/src/ads.ts` supports native bridge (`window.AndroidAds`) + web fallback placeholder.
 - `scripts_sync_web_to_android.ps1` now copies only runtime-required image files to reduce APK size.
 - Device/emulator is not connected in current environment (`adb devices` empty).
+

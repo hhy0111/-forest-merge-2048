@@ -1,7 +1,7 @@
 # Forest Merge 2048 Android Wrapper
 
 ## Project
-- Package: `com.forestmerge.game2048`
+- Package: `com.appstudioon.forestmerge2048`
 - Web source: `../app/dist`
 - WebView entry: `file:///android_asset/web/index.html`
 
@@ -43,3 +43,4 @@
  - `showRewardedAd(placement, requestId)`
 - Native returns reward result by invoking:
  - `window.__onAndroidRewardedAdResult(requestId, rewarded)`
+

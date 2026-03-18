@@ -41,11 +41,11 @@ if (wantsReleaseBuild && !hasReleaseSigning) {
 }
 
 android {
-  namespace = "com.forestmerge.game2048"
+  namespace = "com.appstudioon.forestmerge2048"
   compileSdk = 35
 
   defaultConfig {
-    applicationId = "com.forestmerge.game2048"
+    applicationId = "com.appstudioon.forestmerge2048"
     minSdk = 24
     targetSdk = 35
     versionCode = 1
@@ -100,3 +100,4 @@ dependencies {
   implementation("androidx.webkit:webkit:1.11.0")
   implementation("com.google.android.gms:play-services-ads:23.6.0")
 }
+

@@ -8,3 +8,5 @@ app/dist/
 android-wrapper/.gradle/
 android-wrapper/app/build/
 android-wrapper/keystore.properties
+android-wrapper/app/signing/
+android-wrapper/keystore.upload-reset.properties

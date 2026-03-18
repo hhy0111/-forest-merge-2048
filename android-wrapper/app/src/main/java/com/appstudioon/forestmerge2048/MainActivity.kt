@@ -1,4 +1,4 @@
-package com.forestmerge.game2048
+package com.appstudioon.forestmerge2048
 
 import android.annotation.SuppressLint
 import android.graphics.Color
@@ -265,3 +265,4 @@ class MainActivity : AppCompatActivity() {
     }
   }
 }
+
